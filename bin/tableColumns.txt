@@ -1,0 +1,22 @@
+# Annotations
+Accession TEXT
+Organism TEXT
+Definition TEXT
+Hierarchy TEXT
+Length TEXT
+Type TEXT
+Shape TEXT
+Date TEXT
+DNA LONGTEXT
+
+# Sequences
+Accession TEXT
+Gene TEXT
+GeneID TEXT
+ProteinID TEXT
+Product TEXT
+Coordinates TEXT
+Strand TEXT
+Exons Text
+Date TEXT
+Protein LONGTEXT
