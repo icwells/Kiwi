@@ -16,8 +16,9 @@ must be compiled. Cython can be installed from the pypi repository or via Minico
 ### To install with Miniconda:
 conda install cython
 
-### Compiling Kiwi
+### Compiling Kiwi:
 cd Kiwi/
+
 ./install.sh
 
 ## Please refer to KiwiReadMe.pdf for more detailed instructions on running the program
