@@ -93,16 +93,18 @@ Place source fasta file into the directory specified with -d.")
 	if args.nucdb or args.protdb:
 		if args.nucdb:
 			infile = args.d + "viralRefSeq.fna"
-			print("\tConstructing BLAST nucleotide datbase...")
+			print("\tConstructing BLAST nucleotide database...")
 			makeDB(infile, "nucl")
 		if args.protdb:
 			infile = args.d + "viralRefProt.faa"
-			print("\tConstructing BLAST protein datbase...")
+			print("\tConstructing BLAST protein database...")
 			makeDB(infile, "prot")
 	else:
 		if args.o[-1] != "/":
 			# Add trailing slash
 			args.o += "/"
+		if not os.path.isdir(args.o):
+			os.mkdir(args.o)
 		if args.p > cpu_count():
 			# Prevent too many threads from being called
 			args.p = cpu_count()

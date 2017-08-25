@@ -50,34 +50,47 @@ class flatFileEntry():
 				self.DNA += seq.upper()
 		elif self.conditions["trans"] == 1:
 			# Append remaining lines of translation
-			if '"' in line:
-				self.cds["prot"] += line.replace('"', '')
+			if "gene" in line or "ORIGIN" in line:
 				self.genes[self.geneid] = self.cds
 				# Reset for next gene
 				self.geneDict()
 				self.geneid = ""
 				self.conditions["trans"] = 0
 			else:
-				self.cds["prot"] += line
-		elif len(line.split()) > 1:
+				self.cds["prot"] += line.replace('"', '')
+		elif line[0] == "/":
+			if "/locus_tag=" in line and self.conditions["cds"] == 1:
+				self.cds["name"] = line.split("=")[1].replace('"', '')
+			elif "/db_xref=" in line and self.conditions["cds"] == 1:
+				self.geneid = line[line.find(":")+1:line.rfind("\"")]
+			elif "/product=" in line:
+				self.cds["prod"] = line.split("=")[1].replace('"', '')
+			elif "/protein_id=" in line and self.conditions["cds"] == 1:
+				self.cds["pid"] = line.split("=")[1].replace('"', '')
+			elif "/translation=" in line:
+				self.cds["prot"] = line.split('"')[1]
+				self.conditions["trans"] = 1
+		else:
 			# Evaluate one and two line entries
 			if "DEFINITION" in line:
 				line = line.replace(",", "")
 				self.Definition = line.replace("DEFINITION ", "")
-				if "." not in line:
-					self.conditions["def"] = 1
+				self.conditions["def"] = 1
 			elif self.conditions["def"] == 1:
-				# Append second line of definition
-				self.Definition += " " + line.replace(",", "")
-				self.conditions["def"] = 0
+				if "ACCESSION" in line:
+					self.conditions["def"] = 0
+				else:
+					# Append second line of definition
+					self.Definition += " " + line.replace(",", "")
 			elif "ORGANISM" in line:
 				self.Organism = line.replace("ORGANISM ", "")
 				self.conditions["hier"] = 1
 			elif self.conditions["hier"] == 1:
-				line = line.replace(";", ":")
-				self.Hierarchy += line.replace(",", ":")
-				if line[-1] == ".":
+				if "REFERENCE" in line:
 					self.conditions["hier"] = 0
+				else:
+					line = line.replace(";", ":")
+					self.Hierarchy += line.replace(",", ":")
 			elif "CDS" in line:
 				# Determine coordinates, strand, and number of exons and reformat
 				self.conditions["cds"] = 1
@@ -91,18 +104,6 @@ class flatFileEntry():
 					line = line.replace("join", "")
 					line = line.replace(",", "::")
 				self.cds["coor"] = line					
-		elif line[0] == "/":
-			if "/locus_tag=" in line and self.conditions["cds"] == 1:
-				self.cds["name"] = line.split("=")[1].replace('"', '')
-			elif "db_xref=" in line and self.conditions["cds"] == 1:
-				self.geneid = line[line.find(":")+1:line.rfind("\"")]
-			elif "/product=" in line:
-				self.cds["prod"] = line.split("=")[1].replace('"', '')
-			elif "/protein_id=" in line and self.conditions["cds"] == 1:
-				self.cds["pid"] = line.split("=")[1].replace('"', '')
-			elif "/translation=" in line:
-				self.cds["prot"] = line.split('"')[1]
-				self.conditions["trans"] = 1
 
 	def dbUpload(self, db, table, columns):
 		# Formats output for database and uploads
@@ -172,3 +173,25 @@ def convertFF(infile, db, table, columns, ids):
 								log.write(("{}\n").format(genome.Accession))
 						uploaded = 1
 	print(("\t{} of {} sequences successfuly uploaded.").format(count, total))
+
+def subFlatFile(infile, outfile, ids):
+	# Subsets entries to new file
+	cdef int save = 0
+	cdef str line
+	cdef str newline
+	cdef str acc
+	print("\tSubsetting flat file...")
+	with open(infile, "r") as flatfile:
+		with open(outfile, "w") as output:
+			for line in flatfile:
+				newline = re.sub(" +", " ", line.strip())
+				if "LOCUS" in newline:
+					# Isolate accession number
+					acc = newline.split()[1]
+					if acc in ids:
+						save = 1
+				if save == 1:
+					# Write all information from failed entry
+					output.write(line)
+					if newline == "//":
+						save = 0

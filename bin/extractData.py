@@ -12,25 +12,6 @@ from shlex import split
 from getpass import getpass
 from dbIO import *
 
-def parallelIDs(ids, cpu):
-	# Returns a list of len cpu of ids of len ids/cpu
-	para = []
-	newids = {}
-	idx = 0
-	l = ceil(len(ids)/cpu)
-	for i in range(cpu):
-		newids["idx"] = i
-		try:
-			# Split ids into eqyal lengths
-			newids["ids"] = ids[idx:idx+l]
-		except IndexError:
-			# Append remaining entries
-			newids["ids"] = ids[idx:]
-		para.append(newids)
-		newids = {}
-		idx += l
-	return para
-
 def backup():
 	# Backup database to local Linux machine
 	timestamp = str(date.today())
@@ -64,8 +45,6 @@ help = "Extract dna sequences from database in fasta format.")
 	parser.add_argument("--protein", action = "store_true",
 help = "Extract protein sequences from database in fasta format.")
 	parser.add_argument("-d", help = "Path to output directory.")
-	parser.add_argument("-p", type = int, default = 1,
-help = "Number of threads for extracting sequences (default = 1).")
 	args = parser.parse_args()
 	if args.backup == True:
 		# Backup database
@@ -85,7 +64,7 @@ help = "Number of threads for extracting sequences (default = 1).")
 			print("\n\tIncorrect password. Access denied.")
 			quit()
 		if args.d:
-			# Add trailing / to directory if it is given
+			# Add trailing / to directory if it necessary
 			if args.d[-1] != "/":
 				args.d += "/"
 			if not os.path.isdir(args.d):
@@ -103,34 +82,11 @@ help = "Number of threads for extracting sequences (default = 1).")
 			print("\tFinished writing data to file.\n")			
 		else:
 			# Extract protein and/or dna sequences
-			cpu = args.p
-			if cpu > cpu_count():
-				cpu = cpu_count()
 			if args.dna == True:
-				with open(args.d + "viralRefSeq.fna", "w") as fasta:
-					# Initialize file
-					pass
-				ids = getAccession(db, "Annotations")
-				para = parallelIDs(ids, cpu)
-				func = partial(extractDNA, username, password, args.d)
-				print(("\n\tExtracting DNA sequences with {} threads...").format(cpu))
-				pool = Pool(processes = cpu)
-				pool.map(func, para, chunksize = 1)
-				pool.close()
-				pool.join()
+				extractDNA(db, args.d)
 				print("\tFinished writing DNA sequences to file.\n")			
 			if args.protein == True:
-				with open(args.d + "viralRefProt.faa", "w") as fasta:
-					# Initialize file
-					pass
-				ids = getAccession(db, args.t, "ProteinID")
-				para = parallelIDs(ids, cpu)
-				func = partial(extractProtein, username, password, args.t, args.d)
-				print(("\n\tExtracting protein sequences with {} threads...").format(cpu))
-				pool = Pool(processes = cpu)
-				pool.map(func, para, chunksize = 1)
-				pool.close()
-				pool.join()
+				extractProtein(db, args.t, args.d)
 				print("\tFinished writing protein sequences to file.\n")			
 	print(("\tTotal runtime: {}.").format(datetime.now()-starttime))
 

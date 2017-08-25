@@ -127,55 +127,44 @@ def extractCSV(db, table, outdir, ids, columns):
 				line += str(j) + ","
 			output.write(line[:-1] + "\n")
 
-def appendFasta(infile):
-	# Adds file from parallel extraction into result fasta
-	cdef str line
-	cdef str outfile
-	outfile = infile[:infile.find(".")] + infile[infile.rfind("."):]
-	with open(outfile, "a") as output:
-		with open(infile, "r") as fasta:
-			for line in fasta:
-				output.write(line)
-	os.remove(infile)
-
-def extractDNA(username, password, outdir, para):
-	# Extracts fasta dna sequences, gene IDs, and accessions
-	db = MySQLdb.connect("localhost", username, password, "ASUviralDB")
+def extractDNA(db, outdir):
+	# Extracts dna sequences and accessions
 	cursor = db.cursor()
-	cdef str i
-	cdef list ids 
 	cdef str outfile
-	outfile = outdir + ("viralRefSeq.{}.fna").format(para["idx"])
-	ids = para["ids"]
+	cdef str sql
+	outfile = outdir + "viralRefSeq.fna"
+	sql = 'SELECT Accession, DNA FROM Annotations;'
+	# Execute the SQL command
+	cursor.execute(sql)
+	# Fetch row from table
+	results = cursor.fetchall()
 	with open(outfile, "w") as fasta:
-		for i in ids:
-			row = extractRow(cursor, "Annotations", i, "Accession")
+		for row in results:
 			try:
-				row = row[0]
-				if len(row[8]) > 2:
+				if len(row[1]) > 2:
 					# Skip entries with missing data
-					fasta.write((">{}-{}bp\n{}\n").format(row[0], row[4], row[8]))
+					fasta.write((">{}\n{}\n").format(row[0], row[1]))
 			except IndexError:
 				pass
-	appendFasta(outfile)
 
-def extractProtein(username, password, table, outdir, para):
-	# Extracts fasta dna sequences, gene IDs, and accessions
-	db = MySQLdb.connect("localhost", username, password, "ASUviralDB")
+def extractProtein(db, table, outdir):
+	# Extracts fasta protein sequences, protein IDs, and accessions
 	cursor = db.cursor()
-	cdef str i
-	cdef list ids
 	cdef str outfile
-	outfile = outdir + ("viralRefProt.{}.faa").format(para["idx"])
-	ids = para["ids"]
+	cdef str sql
+	cdef list ids = []
+	outfile = outdir + "viralRefProt.faa"
+	sql = ('SELECT Accession, ProteinID, Protein FROM {};').format(table)
+	# Execute the SQL command
+	cursor.execute(sql)
+	# Fetch row from table
+	results = cursor.fetchall()
 	with open(outfile, "w") as fasta:
-		for i in ids:
-			row = extractRow(cursor, table, i, "ProteinID")
+		for row in results:
 			try:
-				row = row[0]
-				if len(row[9]) > 2:
+				if len(row[2]) > 2 and row[1] not in ids:
 					# Skip entries with missing data
-					fasta.write((">{}-{}\n{}\n").format(row[0], row[3], row[9]))
+					fasta.write((">{}-{}\n{}\n").format(row[0], row[1], row[2]))
+					ids.append(row[1])
 			except IndexError:
 				pass
-	appendFasta(outfile)
