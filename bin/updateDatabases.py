@@ -1,6 +1,5 @@
 '''This script will download current NCBI refSeqs, upload any new entries to 
-the MySQL database, append new sequences to the appropriate fasta references, 
-and regenerate blast databases.'''
+the MySQL database, and create new BLAST databases.'''
 
 import argparse
 import MySQLdb
@@ -82,21 +81,13 @@ def downloadRefSeqs():
 				output.write(line)
 	os.remove(v2)
 
-def resumeStep(upload, extract):
-	# Sets previous steps to True if any step is True
-	if extract == True:
-		return True, True, True
-	elif upload == True:
-		return True, True, False
-
 def main():
 	starttime = datetime.now()
 	wd = os.getcwd()
 	parser = argparse.ArgumentParser(description = "This script will download \
-current NCBI refSeqs, upload any new entries to the MySQL database, append \
-new sequences to the appropriate fasta references, and regenerate blast \
-databases. It can be resumed at each major step (although you must call \
-blastSeqs.py directly to continue with making new blast databases).")
+current NCBI refSeqs, upload any new entries to the MySQL database,  and \
+create new BLAST databases. It can be resumed at each major step (although you \
+must call blastSeqs.py directly to continue with making new blast databases).")
 	parser.add_argument("--id", action = "store_true",
 help = "Resumes script from identification phase (skips download).")
 	parser.add_argument("--upload", action = "store_true", help = "Resumes \
@@ -121,7 +112,11 @@ script from extracting from MySQL database (new entries must have been uploaded)
 		quit()
 	if args.d[-1] != "/":
 		args.d += "/"
-	args.id, args.upload, args.extract = resumeStep(args.upload, args.extract)
+	# Skip steps previous to one specified
+	if args.extract == True:
+		args.upload = True
+	if args.upload == True:
+		args.id = True
 	if args.id == False:
 		downloadRefSeqs()
 		os.chdir(wd)
