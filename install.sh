@@ -11,6 +11,7 @@ cd src/
 python setup.py build_ext --inplace
 cd ../
 
+mv src/blastResults.*.so bin/blastResults.so
 mv src/dbIO.*.so bin/dbIO.so
 mv src/flatFileClass.*.so bin/flatFileClass.so
 

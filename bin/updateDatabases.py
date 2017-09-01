@@ -49,12 +49,8 @@ def updateData(db, outdir, upload, extract):
 	print("\tExtracting protein sequences from database...")
 	extractProtein(db, "Genes", outdir)
 	# Recompile blast databases
-	fna = outdir + "viralRefSeq.fna"
-	print("\tConstructing BLAST nucleotide datbase...")
-	makeDB(fna, "nucl")
-	faa = outdir + "viralRefProt.faa"
-	print("\tConstructing BLAST protein datbase...")
-	makeDB(faa, "prot")
+	makeDB(outdir)
+	ublastDb(outdir)
 
 def downloadRefSeqs():
 	# Downloads and concatenates NCBI viral ref seqs

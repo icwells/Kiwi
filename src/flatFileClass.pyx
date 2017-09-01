@@ -28,7 +28,7 @@ class flatFileEntry():
 		self.geneid = ""
 		self.cds = {"coor": "NA", "name": "NA", "pid": "NA", 
 					"prod": "NA", "strand": "NA", "exons": "NA", "prot": "NA"}
-		self.conditions = {"def": 0, "hier": 0, "cds": 0, "trans": 0}
+		self.conditions = {"def": 0, "org": 0, "hier": 0, "cds": 0, "trans": 0}
 
 	def geneDict(self):
 		# Resets self.cds with blank dictionary
@@ -64,7 +64,7 @@ class flatFileEntry():
 			elif "/db_xref=" in line and self.conditions["cds"] == 1:
 				self.geneid = line[line.find(":")+1:line.rfind("\"")]
 			elif "/product=" in line:
-				self.cds["prod"] = line.split("=")[1].replace('"', '')
+				self.cds["prod"] = line.split("=")[1].replace('"', '').replace(',', '')
 			elif "/protein_id=" in line and self.conditions["cds"] == 1:
 				self.cds["pid"] = line.split("=")[1].replace('"', '')
 			elif "/translation=" in line:
@@ -84,7 +84,15 @@ class flatFileEntry():
 					self.Definition += " " + line.replace(",", "")
 			elif "ORGANISM" in line:
 				self.Organism = line.replace("ORGANISM ", "")
-				self.conditions["hier"] = 1
+				self.conditions["org"] = 1
+			elif self.conditions["org"] == 1:
+				if ";" in line:
+					self.conditions["org"] = 0
+					self.conditions["hier"] = 1
+					line = line.replace(";", ":")
+					self.Hierarchy += line.replace(",", ":")
+				else:
+					self.Organism += line 
 			elif self.conditions["hier"] == 1:
 				if "REFERENCE" in line:
 					self.conditions["hier"] = 0
@@ -162,7 +170,7 @@ def convertFF(infile, db, table, columns, ids):
 				elif line.strip() == "//":
 					total += 1
 					# Upload to database
-					if genome.Accession not in ids:
+					if genome.Accession not in ids and "Bacteria: " not in genome.Hierarchy:
 						uploaded = genome.dbUpload(db, table, columns)
 						if uploaded == 1:
 							# Tally successful

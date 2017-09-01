@@ -127,11 +127,44 @@ def extractCSV(db, table, outdir, ids, columns):
 				line += str(j) + ","
 			output.write(line[:-1] + "\n")
 
+def getPID(cursor, acc):
+	# Returns a list of protein ids corresponding to list of accessions
+	cdef str sql
+	cdef str i
+	cdef list ids = []
+	print("\tExtracting ProteinIDs...")
+	sql = "SELECT Accession, ProteinID FROM Genes;"
+	cursor.execute(sql)
+	results = cursor.fetchall() 
+	for row in results:
+		try:
+			if row[0] in acc:
+				ids.append(row[1])
+		except IndexError:
+			pass
+	return ids
+
+def getBacAcc(cursor):
+	# Stores a list of bacterial accessions to file
+	cdef str sql
+	cdef list acc = []
+	sql = "SELECT Accession FROM Annotations WHERE Hierarchy LIKE 'Bacteria%'"
+	cursor.execute(sql)
+	results = cursor.fetchall()
+	for i in results:
+		try:
+			acc.append(i[0])
+		except IndexError:
+			pass
+	return acc
+
 def extractDNA(db, outdir):
 	# Extracts dna sequences and accessions
 	cursor = db.cursor()
 	cdef str outfile
 	cdef str sql
+	acc = getBacAcc(cursor)
+	print("\tExtracting nucleotide sequences in fasta format...")
 	outfile = outdir + "viralRefSeq.fna"
 	sql = 'SELECT Accession, DNA FROM Annotations;'
 	# Execute the SQL command
@@ -141,7 +174,7 @@ def extractDNA(db, outdir):
 	with open(outfile, "w") as fasta:
 		for row in results:
 			try:
-				if len(row[1]) > 2:
+				if len(row[1]) > 2 and row[0] not in acc:
 					# Skip entries with missing data
 					fasta.write((">{}\n{}\n").format(row[0], row[1]))
 			except IndexError:
@@ -152,7 +185,9 @@ def extractProtein(db, table, outdir):
 	cursor = db.cursor()
 	cdef str outfile
 	cdef str sql
-	cdef list ids = []
+	acc = getBacAcc(cursor)
+	ids = getPID(cursor, acc)
+	print("\tExtracting protein sequences in fasta format...")
 	outfile = outdir + "viralRefProt.faa"
 	sql = ('SELECT Accession, ProteinID, Protein FROM {};').format(table)
 	# Execute the SQL command
@@ -162,6 +197,7 @@ def extractProtein(db, table, outdir):
 	with open(outfile, "w") as fasta:
 		for row in results:
 			try:
+				
 				if len(row[2]) > 2 and row[1] not in ids:
 					# Skip entries with missing data
 					fasta.write((">{}-{}\n{}\n").format(row[0], row[1], row[2]))
