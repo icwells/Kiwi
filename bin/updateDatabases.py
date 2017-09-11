@@ -10,7 +10,7 @@ from datetime import datetime
 from getpass import getpass
 from dbIO import *
 from flatFileClass import *
-from blastSeqs import makeDB
+from blastSeqs import makeDB, ublastDb
 from version import version
 
 def findNewAcc(old, outfile):
@@ -45,6 +45,8 @@ def updateData(db, outdir, upload, extract):
 		columns = getColumns()
 		convertFF(sub, db, "Genes", columns, [])
 	# Append new data to fasta database files
+	if not os.path.isdir(outdir):
+		os.mkdir(outdir)
 	print("\tExtracting DNA sequences from database...")
 	extractDNA(db, outdir)
 	print("\tExtracting protein sequences from database...")
