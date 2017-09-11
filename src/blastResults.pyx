@@ -2,11 +2,11 @@
 with MySQL database information.'''
 
 import MySQLdb
+from sys import stdout
 
 def sigHits(outfile):
 	# Builds a list of blastx hits with e < 10^-5
 	cdef list hits = []
-	cdef str line
 	with open(outfile, "r") as bx:
 		for line in bx:
 			line = line.split("\t")
@@ -19,18 +19,26 @@ def subsetSig(infile, hits, outdir):
 	cdef int keep = 0
 	cdef str query
 	cdef str line
+	cdef float count = 0.0
+	cdef int total
+	total = len(hits)
 	query = outdir + "sigHits.fna"
 	print("\tSubsetting significant hits...")
 	with open(infile, "r") as fasta:
 		with open(query, "w") as output:
 			for line in fasta:
 				if line[0] == ">":
-					if line[1:].strip() in hits or line.split()[0].strip()[1:] in hits:
+					if " " in line:
+						# Select first item if there is a space in the header
+						line = line.split()[0]
+					if line[1:].strip() in hits:
 						output.write(line)
 						keep = 1
 				elif keep == 1:
-					output.write(line)
+					output.write(line.upper())
 					keep = 0
+					count += 1.0
+					stdout.write(("\r\tFound {0:.2%} of sequences.").format(count/total))
 	return query
 
 #-----------------------------------------------------------------------------

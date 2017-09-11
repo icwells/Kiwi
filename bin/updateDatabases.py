@@ -11,6 +11,7 @@ from getpass import getpass
 from dbIO import *
 from flatFileClass import *
 from blastSeqs import makeDB
+from version import version
 
 def findNewAcc(old, outfile):
 	# Records new accessions in updated RefSeq flat file
@@ -84,6 +85,8 @@ def main():
 current NCBI refSeqs, upload any new entries to the MySQL database,  and \
 create new BLAST databases. It can be resumed at each major step (although you \
 must call blastSeqs.py directly to continue with making new blast databases).")
+	parser.add_argument("-v", action = "store_true", 
+help = "Prints version info and exits.")
 	parser.add_argument("--id", action = "store_true",
 help = "Resumes script from identification phase (skips download).")
 	parser.add_argument("--upload", action = "store_true", help = "Resumes \
@@ -93,6 +96,8 @@ script from extracting from MySQL database (new entries must have been uploaded)
 	parser.add_argument("-u", help = "MySQL username.")
 	parser.add_argument("-d", help = "Path to blast database directory.")
 	args = parser.parse_args()
+	if args.v:
+		version()
 	# Get username
 	if args.u:
 		username = args.u

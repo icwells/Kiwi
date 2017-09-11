@@ -1,4 +1,4 @@
-# Kiwi is a series of scripts for managing NCBI Viral RefSeqs in a MySQL database and calling blast/ublast 
+# Kiwi is a series of scripts for identifying viral genes and genomes using NCBI Viral RefSeqs.
 This program is meant specifically for managing an in-lab database, but has been 
 uploaded in case the code may prove useful to others.
 

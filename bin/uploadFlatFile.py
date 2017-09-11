@@ -1,5 +1,4 @@
-'''This script will convert an NCBI flatfile to fasta and upload the data to 
-a MySQL database.'''
+'''This script will upload an NCBI flatfile to a MySQL database.'''
 
 import argparse
 import MySQLdb
@@ -7,16 +6,21 @@ from datetime import datetime
 from getpass import getpass
 from dbIO import *
 from flatFileClass import *
+from version import version
 
 def main():
 	starttime = datetime.now()
 	parser = argparse.ArgumentParser()
+	parser.add_argument("-v", action = "store_true", 
+help = "Prints version info and exits.")
 	parser.add_argument("-u", help = "MySQL username.")
 	parser.add_argument("--new", action = "store_true",
  help = "Initializes a new table.")
 	parser.add_argument("-t", help = "Name of table to upload data to")
 	parser.add_argument("-i", help = "Path to input flat file.")
 	args = parser.parse_args()
+	if args.v:
+		version()
 	# Get username
 	if args.u:
 		username = args.u

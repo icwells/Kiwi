@@ -6,10 +6,13 @@ import MySQLdb
 from datetime  import datetime
 from getpass import getpass
 from blastResults import *
+from version import version
 
 def main():
 	starttime = datetime.now()
 	parser = argparse.ArgumentParser()
+	parser.add_argument("-v", action = "store_true", 
+help = "Prints version info and exits.")
 	parser.add_argument("-u", help = "MySQL username.")
 	parser.add_argument("-i", help = "Path to fasta file of query sequences.")
 	parser.add_argument("-o", 
@@ -17,6 +20,8 @@ help = "Path to input directory (output directory from blastSeqs).")
 	parser.add_argument("--blast", action = "store_true", default = False,
 help = "Indicates BLAST was run in the previous step (default is ublast).")
 	args = parser.parse_args()
+	if args.v:
+		version()
 	# Get username
 	if args.u:
 		username = args.u

@@ -11,6 +11,7 @@ from subprocess import Popen
 from shlex import split
 from getpass import getpass
 from dbIO import *
+from version import version
 
 def backup():
 	# Backup database to local Linux machine
@@ -33,6 +34,8 @@ def main():
 	starttime = datetime.now()
 	parser = argparse.ArgumentParser(description = 
 "This script will extract data from the ASUviralDB in various formats.")
+	parser.add_argument("-v", action = "store_true", 
+help = "Prints version info and exits.")
 	parser.add_argument("--backup", action = "store_true",
 help = "Backup database to local Linux machine.")
 	parser.add_argument("-u", help = "MySQL username.")
@@ -46,6 +49,8 @@ help = "Extract dna sequences from database in fasta format.")
 help = "Extract protein sequences from database in fasta format.")
 	parser.add_argument("-d", help = "Path to output directory.")
 	args = parser.parse_args()
+	if args.v:
+		version()
 	if args.backup == True:
 		# Backup database
 		backup()
