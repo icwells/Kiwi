@@ -12,9 +12,9 @@ python setup.py build_ext --inplace
 cd ../
 
 # Change names if necessary
-mv src/blastResults.*.so src/blastResults.so
-mv src/dbIO.*.so src/dbIO.so
-mv src/flatFileClass.*.so src/flatFileClass.so
+mv src/blastResults*so bin/blastResults.so
+mv src/dbIO*so bin/dbIO.so
+mv src/flatFileClass*so bin/flatFileClass.so
 
 mv src/*.so bin/
 
