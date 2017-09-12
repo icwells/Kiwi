@@ -16,7 +16,5 @@ mv src/blastResults*so bin/blastResults.so
 mv src/dbIO*so bin/dbIO.so
 mv src/flatFileClass*so bin/flatFileClass.so
 
-mv src/*.so bin/
-
 rm -r src/build/
 rm src/*.c
