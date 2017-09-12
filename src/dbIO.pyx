@@ -67,16 +67,14 @@ def getColumns(types = False):
 				elif "Sequences" in line:
 					t = 1
 			elif line.strip():
-				if t == 0 and types == False:
+				if t == 0:
 					acolumns += line.split()[0] + ","
 				elif t == 1:
 					if types == True:
 						scolumns += line.strip() + ","
 					else:
 						scolumns += line.split()[0] + ","
-	if types == False:
-		acolumns = acolumns[:-1]
-	return [acolumns, scolumns[:-1]]
+	return [acolumns[:-1], scolumns[:-1]]
 
 def newTable(db, table):
 	# Initializes new table
@@ -148,7 +146,7 @@ def getBacAcc(cursor):
 	# Stores a list of bacterial accessions to file
 	cdef str sql
 	cdef list acc = []
-	sql = "SELECT Accession FROM Annotations WHERE Hierarchy LIKE 'Bacteria%'"
+	sql = "SELECT Accession FROM Annotations WHERE Hierarchy LIKE 'Bacteria%';"
 	cursor.execute(sql)
 	results = cursor.fetchall()
 	for i in results:
@@ -177,6 +175,7 @@ def extractDNA(db, outdir):
 				if len(row[1]) > 2 and row[0] not in acc:
 					# Skip entries with missing data
 					fasta.write((">{}\n{}\n").format(row[0], row[1]))
+					acc.append(row[0])
 			except IndexError:
 				pass
 
