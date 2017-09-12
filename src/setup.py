@@ -4,9 +4,9 @@ from distutils.core import setup
 from Cython.Build import cythonize
 
 # Print blank lines to split output
-print()
+print("\n")
 setup(ext_modules=cythonize("blastResults.pyx"))
-print()
+print("\n")
 setup(ext_modules=cythonize("dbIO.pyx"))
-print()
+print("\n")
 setup(ext_modules=cythonize("flatFileClass.pyx"))
