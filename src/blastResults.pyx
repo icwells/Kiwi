@@ -2,7 +2,6 @@
 with MySQL database information.'''
 
 import MySQLdb
-from sys import stdout
 
 def sigHits(outfile):
 	# Builds a list of blastx hits with e < 10^-5
@@ -34,11 +33,10 @@ def subsetSig(infile, hits, outdir):
 					if line[1:].strip() in hits:
 						output.write(line)
 						keep = 1
+						count += 1.0
 				elif keep == 1:
 					output.write(line.upper())
 					keep = 0
-					count += 1.0
-					stdout.write(("\r\tFound {0:.2%} of sequences.").format(count/total))
 	return query
 
 #-----------------------------------------------------------------------------
