@@ -47,7 +47,9 @@ help = "Extract all data from a given table to a csv (sequences will be omitted)
 help = "Extract dna sequences from database in fasta format.")
 	parser.add_argument("--protein", action = "store_true",
 help = "Extract protein sequences from database in fasta format.")
-	parser.add_argument("-d", help = "Path to output directory.")
+	parser.add_argument("--genes", action = "store_true",
+help = "Extracts genes using coordinated from given table.")
+	parser.add_argument("-d", help = "Path to database directory.")
 	args = parser.parse_args()
 	if args.v:
 		version()
@@ -69,7 +71,7 @@ help = "Extract protein sequences from database in fasta format.")
 			print("\n\tIncorrect password. Access denied.")
 			quit()
 		if args.d:
-			# Add trailing / to directory if it necessary
+			# Add trailing / to directory if necessary
 			if args.d[-1] != "/":
 				args.d += "/"
 			if not os.path.isdir(args.d):
@@ -92,7 +94,9 @@ help = "Extract protein sequences from database in fasta format.")
 				print("\tFinished writing DNA sequences to file.\n")			
 			if args.protein == True:
 				extractProtein(db, args.t, args.d)
-				print("\tFinished writing protein sequences to file.\n")			
+				print("\tFinished writing protein sequences to file.\n")
+			if args.genes == True:
+				extractGenes(db, args.t, args.d)
 	print(("\tTotal runtime: {}.").format(datetime.now()-starttime))
 
 if __name__ == "__main__":

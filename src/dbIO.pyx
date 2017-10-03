@@ -3,6 +3,7 @@
 from sys import stdout
 import MySQLdb
 import os
+import re
 
 def updateDB(db, table, columns, values):
 	# Updates existing table
@@ -201,5 +202,93 @@ def extractProtein(db, table, outdir):
 					# Skip entries with missing data
 					fasta.write((">{}-{}\n{}\n").format(row[0], row[1], row[2]))
 					ids.append(row[1])
+			except IndexError:
+				pass
+
+#-----------------------------------------------------------------------------
+
+def getGene(dna, coordinates, strand, exons):
+	# Extract gene from genome using coordinates
+	cdef list c
+	cdef list coor
+	cdef int start
+	cdef int end
+	cdef str gene = ""
+	cdef str exon
+	# Split coordinates for each exon
+	c = coordinates.split("::")
+	if exons == "NA":
+		exons = 1
+	else:
+		exons = int(exons)
+	for i in range(exons):
+		if c[i] != "NA":
+			# Remove extraneous characters
+			co = re.findall(r"\d+\.\.\d+", c[i])
+			coor = co[0].split("..")
+			# Get start and end in ascending order
+			if strand == "-":
+				start = int(coor[1])-1
+				end = int(coor[0])-1
+			else:
+				start = int(coor[0])-1
+				end = int(coor[1])-1
+			if 0 <= start < end:
+				exon = dna[start:end]
+				if strand == "-":
+					# Reverse sequence
+					exon = exon[::-1]
+				gene += exon + "XXX"
+	# Return without trailing codon
+	if len(gene) > 3:
+		gene = gene[:-3]
+	return gene
+
+def genomeDict(cursor, acc):
+	# Converts results to a dict of acc: seq
+	cdef str sql
+	genome = {}
+	sql = 'SELECT Accession, DNA FROM Annotations;'
+	# Execute the SQL command
+	cursor.execute(sql)
+	# Fetch row from table
+	results = cursor.fetchall()
+	for row in results:
+		try:
+			if row[0] not in acc:
+				genome[row[0]] = row[1]
+		except IndexError:
+			pass
+	return genome
+
+def extractGenes(db, table, outdir):
+	# Extracts dna sequences from annotation table and gene coordinates from protein table
+	cursor = db.cursor()
+	cdef str outfile
+	cdef str sql
+	cdef double l
+	cdef double count = 0.0
+	acc = getBacAcc(cursor)
+	ids = getPID(cursor, acc)
+	print("\tExtracting gene sequences in fasta format...")
+	outfile = outdir + "viralRefGenes.fna"
+	genome = genomeDict(cursor, acc)
+	sql = ('SELECT Accession, ProteinID, Coordinates, Strand, Exons FROM {};').format(table)
+	# Execute the SQL command
+	cursor.execute(sql)
+	# Fetch row from table
+	results = cursor.fetchall()
+	l = float(len(results))
+	with open(outfile, "w") as fasta:
+		for row in results:
+			count += 1
+			try:
+				if row[1] not in ids:
+					dna = genome[row[0]]
+					gene = getGene(dna, row[2], row[3], row[4])
+					if gene:
+						fasta.write((">{}-{}\n{}\n").format(row[0], row[1], gene))
+						ids.append(row[1])
+						stdout.write(("\r\tExtracted {:.1%} of genes.").format(count/l))
 			except IndexError:
 				pass
