@@ -1,7 +1,7 @@
 '''Prints version data for Kiwi package and exits.'''
 
 def version():
-	print("\n\tKiwi v0.2 (9/11/17) is a package for identifying viral \
+	print("\n\tKiwi v0.3 (10/3/17) is a package for identifying viral \
 genomes and genes using NCBI BLAST/Ublast,\n\tquantifying k-mers, analyzing codon \
 frequencies, and generating hidden Markov models.")
 	print("\n\tCopyright 2017 by Shawn Rupp, Varsani Lab, Biodesign Institute, \
